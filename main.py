@@ -1,7 +1,6 @@
 import pygame, sys, random
 from pygame.locals import *
 
-
 #--------------Global Variables-------------
 
 SCREEN_WIDTH = 600
@@ -9,20 +8,20 @@ SCREEN_HEIGHT = 600
 clock = pygame.time.Clock()
 running = True
 bg_color = (0,0,0)
-snake_color = (255, 255, 255)
-snake_x, snake_y, snake_l, snake_w = 0, 0, 20, 20  
-food_color = (200, 0, 0)
+snake_color = (255, 0, 0)
+snake_x, snake_y, snake_l, snake_w = 0, 0, 10, 10  
+food_color = (0, 255, 0)
 food_x, food_y, food_l, food_w = 100, 100 , 10, 10
-food_pos = [food_x, food_y]
+food_pos = [food_x, food_y] 
 score = 0
 left = False        
 right = False
 up = False
 down = False
-vel = 4                 #vel of the snake
-history = [None, None]  #Tracks movement history
-
-
+vel = 4     
+level = 10            #vel of the snake
+history = [None, None]
+snake_body = [[snake_x, snake_y]]
 
 #----------------Screen---------------------
 
@@ -30,40 +29,18 @@ pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
 pygame.display.set_caption('Snake')
 
-
 #---------------Functions-------------------
 
-def move(history, vel):
+def move(direction, vel):
     global snake_x, snake_y
-
-    #Stopping Backwards Movement
-    if history[0] != history[1]:
-        if history[1] == 'left' and history[0] != 'right':
-            snake_x -= vel
-        if history[1] == 'left' and history[0] == 'right':
-            snake_x += vel
-        if history[1] == 'right' and history[0] != 'left':
-            snake_x += vel
-        if history[1] == 'right' and history[0] == 'left':
-            snake_x -= vel
-        if history[1] == 'up' and history[0] != 'down':
-            snake_y -= vel
-        if history[1] == 'up' and history[0] == 'down':
-            snake_y += vel
-        if history[1] == 'down' and history[0] != 'up':
-            snake_y += vel
-        if history[1] == 'down' and history[0] == 'up':
-            snake_y -= vel
-
-
-    # if movement == 'left':
-    #     snake_x -= vel
-    # if movement == 'right':
-    #     snake_x += vel
-    # if movement == 'up':
-    #     snake_y -= vel
-    # if movement == 'down':
-    #     snake_y += vel
+    if direction == 'left':
+        snake_x -= vel
+    if direction == 'right':
+        snake_x += vel
+    if direction == 'up':
+        snake_y -= vel
+    if direction == 'down':
+        snake_y += vel
 
 def collision(snake, food):
     if snake.colliderect(food):
@@ -71,49 +48,55 @@ def collision(snake, food):
     return False
 
 def food_generator(food_pos):
-    food_x = random.randint(0, SCREEN_WIDTH)
-    food_y = random.randint(0, SCREEN_HEIGHT)
+    food_x = random.randint(0, SCREEN_WIDTH - 10)
+    food_y = random.randint(0, SCREEN_HEIGHT - 10)
     return food_x, food_y
-
 
 #--------------Main Loop--------------------
 
-while running:
-    
+while running:   
     screen.fill(bg_color)
     snake = pygame.Rect(snake_x, snake_y, snake_l, snake_w)
     food = pygame.Rect(food_pos[0], food_pos[1], food_l, food_w)
     pygame.draw.rect(screen, snake_color, snake)
     pygame.draw.rect(screen, food_color, food)
-   
+    pygame.time.delay(level)
+      
     #Border Collision Check
     if snake_x >= SCREEN_WIDTH-snake_l or snake_x < 0 or snake_y >= SCREEN_HEIGHT-snake_w or snake_y < 0:
         running = False
 
     if left:
-        move(history, vel) 
+        if history[0] == 'right':
+            move('right',vel)
+            history[1] = 'right'
+        else:
+            move('left', vel)
         if collision(snake, food):
-            snake_l += 5       
-            score += 1
             food_pos[0], food_pos[1] = food_generator(food_pos)
-
     if right:
-        move(history, vel)
+        if history[0] == 'left':
+            move('left',vel)
+            history[1] = 'left'
+        else:
+            move('right', vel)
         if collision(snake, food):
-            snake_l += 5       
-            score += 1
             food_pos[0], food_pos[1] = food_generator(food_pos)
     if up:
-        move(history, vel) 
+        if history[0] == 'down':
+            move('down',vel)
+            history[1] = 'down'
+        else:
+            move('up', vel)
         if collision(snake, food):
-            snake_l += 5       
-            score += 1
             food_pos[0], food_pos[1] = food_generator(food_pos)
     if down:
-        move(history,  vel) 
+        if history[0] == 'up':
+            move('up',vel)
+            history[1] = 'up'
+        else:
+            move('down', vel)
         if collision(snake, food):
-            snake_l += 5      
-            score += 1
             food_pos[0], food_pos[1] = food_generator(food_pos)
 
     for event in pygame.event.get():
